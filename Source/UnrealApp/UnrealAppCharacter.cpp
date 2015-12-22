@@ -26,21 +26,6 @@ AUnrealAppCharacter::AUnrealAppCharacter()
 	FirstPersonCameraComponent->RelativeLocation = FVector(0, 0, 64.f); // Position the camera
 	FirstPersonCameraComponent->bUsePawnControlRotation = true;
 
-	// Create a mesh component that will be used when being viewed from a '1st person' view (when controlling this pawn)
-	Mesh1P = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("CharacterMesh1P"));
-	Mesh1P->SetOnlyOwnerSee(true);
-	Mesh1P->AttachParent = FirstPersonCameraComponent;
-	Mesh1P->bCastDynamicShadow = false;
-	Mesh1P->CastShadow = false;
-
-	// Create a gun mesh component
-	FP_Gun = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("FP_Gun"));
-	FP_Gun->SetOnlyOwnerSee(true);			// only the owning player will see this mesh
-	FP_Gun->bCastDynamicShadow = false;
-	FP_Gun->CastShadow = false;
-	FP_Gun->AttachTo(Mesh1P, TEXT("GripPoint"), EAttachLocation::SnapToTargetIncludingScale, true);
-
-
 	// Default offset from the character location for projectiles to spawn
 	GunOffset = FVector(100.0f, 30.0f, 10.0f);
 
@@ -142,34 +127,38 @@ void AUnrealAppCharacter::TouchUpdate(const ETouchIndex::Type FingerIndex, const
 {
 	if ((TouchItem.bIsPressed == true) && ( TouchItem.FingerIndex==FingerIndex))
 	{
-		if (TouchItem.bIsPressed)
+		if (!TouchItem.bIsPressed)
 		{
-			if (GetWorld() != nullptr)
-			{
-				UGameViewportClient* ViewportClient = GetWorld()->GetGameViewport();
-				if (ViewportClient != nullptr)
-				{
-					FVector MoveDelta = Location - TouchItem.Location;
-					FVector2D ScreenSize;
-					ViewportClient->GetViewportSize(ScreenSize);
-					FVector2D ScaledDelta = FVector2D( MoveDelta.X, MoveDelta.Y) / ScreenSize;									
-					if (ScaledDelta.X != 0.0f)
-					{
-						TouchItem.bMoved = true;
-						float Value = ScaledDelta.X * BaseTurnRate;
-						AddControllerYawInput(Value);
-					}
-					if (ScaledDelta.Y != 0.0f)
-					{
-						TouchItem.bMoved = true;
-						float Value = ScaledDelta.Y* BaseTurnRate;
-						AddControllerPitchInput(Value);
-					}
-					TouchItem.Location = Location;
-				}
-				TouchItem.Location = Location;
-			}
+			return;
 		}
+
+		if (GetWorld() == nullptr)
+		{
+			return;
+		}
+
+		UGameViewportClient* ViewportClient = GetWorld()->GetGameViewport();
+		if (ViewportClient != nullptr)
+		{
+			FVector MoveDelta = Location - TouchItem.Location;
+			FVector2D ScreenSize;
+			ViewportClient->GetViewportSize(ScreenSize);
+			FVector2D ScaledDelta = FVector2D( MoveDelta.X, MoveDelta.Y) / ScreenSize;									
+			if (ScaledDelta.X != 0.0f)
+			{
+				TouchItem.bMoved = true;
+				float Value = ScaledDelta.X * BaseTurnRate;
+				AddControllerYawInput(Value);
+			}
+			if (ScaledDelta.Y != 0.0f)
+			{
+				TouchItem.bMoved = true;
+				float Value = ScaledDelta.Y* BaseTurnRate;
+				AddControllerPitchInput(Value);
+			}
+			TouchItem.Location = Location;
+		}
+		TouchItem.Location = Location;
 	}
 }
 
