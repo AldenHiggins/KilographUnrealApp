@@ -10,8 +10,8 @@
 DEFINE_LOG_CATEGORY_STATIC(LogFPChar, Warning, All);
 
 //////////////////////////////////////////////////////////////////////////
-// AUnrealAppCharacter
-
+///////////////////////  CONSTRUCTOR  ////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
 AUnrealAppCharacter::AUnrealAppCharacter()
 {
 	// Set size for collision capsule
@@ -30,21 +30,26 @@ AUnrealAppCharacter::AUnrealAppCharacter()
 	// Default offset from the character location for projectiles to spawn
 	GunOffset = FVector(100.0f, 30.0f, 10.0f);
 
+	// Initialize state to freerun
+	state = FREERUN;
+
 	// Note: The ProjectileClass and the skeletal mesh/anim blueprints for Mesh1P are set in the
 	// derived blueprint asset named MyCharacter (to avoid direct content references in C++)
 }
 
 //////////////////////////////////////////////////////////////////////////
-// Input
-
+///////////////////////  INITIALIZATION  /////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
 void AUnrealAppCharacter::SetupPlayerInputComponent(class UInputComponent* InputComponent)
 {
-	// Start the player at a certain offset from the rotation object
+	// Start the player at the correct orbiting position
 	if (rotationObject != NULL)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Setting actor location"));
-		SetActorLocation(rotationObject->GetActorLocation() + FVector(0, rotationDistance, 0));
-		this->GetController()->SetControlRotation(UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), rotationObject->GetActorLocation()));
+		UE_LOG(Kilograph, Log, TEXT("Initialized player position to orbit around: %s"), *rotationObject->GetName());
+		state = ORBIT;
+		currentXRotationAroundObject = 0;
+		currentZRotationAroundObject = 0;
+		orbitReposition();
 	}
 
 	// set up gameplay key bindings
@@ -71,45 +76,12 @@ void AUnrealAppCharacter::SetupPlayerInputComponent(class UInputComponent* Input
 	InputComponent->BindAxis("LookUpRate", this, &AUnrealAppCharacter::LookUpAtRate);
 }
 
-void AUnrealAppCharacter::OnFire()
-{ 
-	// try and fire a projectile
-	if (ProjectileClass != NULL)
-	{
-		const FRotator SpawnRotation = GetControlRotation();
-		// MuzzleOffset is in camera space, so transform it to world space before offsetting from the character location to find the final muzzle position
-		const FVector SpawnLocation = GetActorLocation() + SpawnRotation.RotateVector(GunOffset);
-
-		UWorld* const World = GetWorld();
-		if (World != NULL)
-		{
-			// spawn the projectile at the muzzle
-			World->SpawnActor<AUnrealAppProjectile>(ProjectileClass, SpawnLocation, SpawnRotation);
-		}
-	}
-
-	// try and play the sound if specified
-	if (FireSound != NULL)
-	{
-		UGameplayStatics::PlaySoundAtLocation(this, FireSound, GetActorLocation());
-	}
-
-	// try and play a firing animation if specified
-	if(FireAnimation != NULL)
-	{
-		// Get the animation object for the arms mesh
-		UAnimInstance* AnimInstance = Mesh1P->GetAnimInstance();
-		if(AnimInstance != NULL)
-		{
-			AnimInstance->Montage_Play(FireAnimation, 1.f);
-		}
-	}
-
-}
-
+//////////////////////////////////////////////////////////////////////////
+///////////////////////  TOUCH FUNCTIONS  ////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
 void AUnrealAppCharacter::BeginTouch(const ETouchIndex::Type FingerIndex, const FVector Location)
 {
-	if( TouchItem.bIsPressed == true )
+	if (TouchItem.bIsPressed == true)
 	{
 		return;
 	}
@@ -125,7 +97,7 @@ void AUnrealAppCharacter::EndTouch(const ETouchIndex::Type FingerIndex, const FV
 	{
 		return;
 	}
-	if( ( FingerIndex == TouchItem.FingerIndex ) && (TouchItem.bMoved == false) )
+	if ((FingerIndex == TouchItem.FingerIndex) && (TouchItem.bMoved == false))
 	{
 		OnFire();
 	}
@@ -134,7 +106,7 @@ void AUnrealAppCharacter::EndTouch(const ETouchIndex::Type FingerIndex, const FV
 
 void AUnrealAppCharacter::TouchUpdate(const ETouchIndex::Type FingerIndex, const FVector Location)
 {
-	if ((TouchItem.bIsPressed == true) && ( TouchItem.FingerIndex==FingerIndex))
+	if ((TouchItem.bIsPressed == true) && (TouchItem.FingerIndex == FingerIndex))
 	{
 		if (!TouchItem.bIsPressed)
 		{
@@ -152,23 +124,93 @@ void AUnrealAppCharacter::TouchUpdate(const ETouchIndex::Type FingerIndex, const
 			FVector MoveDelta = Location - TouchItem.Location;
 			FVector2D ScreenSize;
 			ViewportClient->GetViewportSize(ScreenSize);
-			FVector2D ScaledDelta = FVector2D( MoveDelta.X, MoveDelta.Y) / ScreenSize;									
+			FVector2D ScaledDelta = FVector2D(MoveDelta.X, MoveDelta.Y) / ScreenSize;
 			if (ScaledDelta.X != 0.0f)
 			{
 				TouchItem.bMoved = true;
 				float Value = ScaledDelta.X * BaseTurnRate;
-				AddControllerYawInput(Value);
+				tapDragX(Value);
 			}
 			if (ScaledDelta.Y != 0.0f)
 			{
 				TouchItem.bMoved = true;
 				float Value = ScaledDelta.Y* BaseTurnRate;
-				AddControllerPitchInput(Value);
+				tapDragY(Value);
 			}
 			TouchItem.Location = Location;
 		}
 		TouchItem.Location = Location;
 	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+////////////////////  STATE TOUCH FUNCTIONS  /////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+
+
+void AUnrealAppCharacter::tapDragX(float Value)
+{
+	switch (state)
+	{
+		case FREERUN:
+		{
+			AddControllerYawInput(Value);
+		}
+		case ORBIT:
+		{
+			UE_LOG(Kilograph, Log, TEXT("Delta X: %f"), Value);
+			currentZRotationAroundObject += Value;
+			orbitReposition();
+		}
+	}
+}
+
+void AUnrealAppCharacter::tapDragY(float Value)
+{
+	switch (state)
+	{
+		case FREERUN:
+		{
+			AddControllerPitchInput(Value);
+		}
+		case ORBIT:
+		{
+			UE_LOG(Kilograph, Log, TEXT("Delta Y: %f"), Value);
+			currentXRotationAroundObject -= Value;
+			orbitReposition();
+		}
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+/////////////////////////      ORBIT       ///////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+void AUnrealAppCharacter::orbitReposition()
+{
+	FRotator rotation = FRotator::MakeFromEuler(FVector(currentXRotationAroundObject, 0.0f, currentZRotationAroundObject));
+	//Rotation Matrix
+	FRotationMatrix MyRotationMatrix(rotation);
+
+	FVector rotatedPosition = MyRotationMatrix.TransformVector(FVector(0.0f, rotationDistance, 0.0f));
+	SetActorLocation(rotationObject->GetActorLocation() + rotatedPosition);
+	this->GetController()->SetControlRotation(UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), rotationObject->GetActorLocation()));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+///////////////////////  OTHER/MISC/LEGACY  //////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+bool AUnrealAppCharacter::EnableTouchscreenMovement(class UInputComponent* InputComponent)
+{
+	bool bResult = false;
+	if (FPlatformMisc::GetUseVirtualJoysticks() || GetDefault<UInputSettings>()->bUseMouseForTouch)
+	{
+		bResult = true;
+		InputComponent->BindTouch(EInputEvent::IE_Pressed, this, &AUnrealAppCharacter::BeginTouch);
+		InputComponent->BindTouch(EInputEvent::IE_Released, this, &AUnrealAppCharacter::EndTouch);
+		InputComponent->BindTouch(EInputEvent::IE_Repeat, this, &AUnrealAppCharacter::TouchUpdate);
+	}
+	return bResult;
 }
 
 void AUnrealAppCharacter::MoveForward(float Value)
@@ -201,15 +243,37 @@ void AUnrealAppCharacter::LookUpAtRate(float Rate)
 	AddControllerPitchInput(Rate * BaseLookUpRate * GetWorld()->GetDeltaSeconds());
 }
 
-bool AUnrealAppCharacter::EnableTouchscreenMovement(class UInputComponent* InputComponent)
+void AUnrealAppCharacter::OnFire()
 {
-	bool bResult = false;
-	if(FPlatformMisc::GetUseVirtualJoysticks() || GetDefault<UInputSettings>()->bUseMouseForTouch )
+	// try and fire a projectile
+	if (ProjectileClass != NULL)
 	{
-		bResult = true;
-		InputComponent->BindTouch(EInputEvent::IE_Pressed, this, &AUnrealAppCharacter::BeginTouch);
-		InputComponent->BindTouch(EInputEvent::IE_Released, this, &AUnrealAppCharacter::EndTouch);
-		InputComponent->BindTouch(EInputEvent::IE_Repeat, this, &AUnrealAppCharacter::TouchUpdate);
+		const FRotator SpawnRotation = GetControlRotation();
+		// MuzzleOffset is in camera space, so transform it to world space before offsetting from the character location to find the final muzzle position
+		const FVector SpawnLocation = GetActorLocation() + SpawnRotation.RotateVector(GunOffset);
+
+		UWorld* const World = GetWorld();
+		if (World != NULL)
+		{
+			// spawn the projectile at the muzzle
+			World->SpawnActor<AUnrealAppProjectile>(ProjectileClass, SpawnLocation, SpawnRotation);
+		}
 	}
-	return bResult;
+
+	// try and play the sound if specified
+	if (FireSound != NULL)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, FireSound, GetActorLocation());
+	}
+
+	// try and play a firing animation if specified
+	if (FireAnimation != NULL)
+	{
+		// Get the animation object for the arms mesh
+		UAnimInstance* AnimInstance = Mesh1P->GetAnimInstance();
+		if (AnimInstance != NULL)
+		{
+			AnimInstance->Montage_Play(FireAnimation, 1.f);
+		}
+	}
 }

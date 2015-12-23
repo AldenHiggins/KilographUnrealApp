@@ -5,5 +5,6 @@
 
 #include "EngineMinimal.h"
 
+DECLARE_LOG_CATEGORY_EXTERN(Kilograph, Log, All);
 
 #endif

@@ -53,12 +53,34 @@ public:
 	class AActor* rotationObject;
 
 	// Distance at which the player will rotate around the rotation object
-	// Object around which the user will rotate
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Control)
 	float rotationDistance;
 
+private:
+	/** Variables handling the player orbiting around a point */
+	float currentXRotationAroundObject;
+	float currentZRotationAroundObject;
+
+	/** Handles the player's state */
+	enum AppState
+	{
+		ORBIT,
+		FREERUN,
+		TOUR,
+		PANORAMA
+	};
+	AppState state;
+
 protected:
-	
+	// Helper function to reposition the player given the current orbit status
+	void orbitReposition();
+
+	// Handles tap and drag input within various states along the x axis
+	void tapDragX(float deltaX);
+
+	// Handles tap and drag input within various states along the y axis
+	void tapDragY(float deltaY);
+
 	/** Fires a projectile. */
 	void OnFire();
 
