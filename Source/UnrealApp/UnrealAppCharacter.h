@@ -48,6 +48,15 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
 	class UAnimMontage* FireAnimation;
 
+	// Object around which the user will rotate
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Control)
+	class AActor* rotationObject;
+
+	// Distance at which the player will rotate around the rotation object
+	// Object around which the user will rotate
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Control)
+	float rotationDistance;
+
 protected:
 	
 	/** Fires a projectile. */

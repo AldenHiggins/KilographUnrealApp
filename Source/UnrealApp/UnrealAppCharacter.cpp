@@ -5,6 +5,7 @@
 #include "UnrealAppProjectile.h"
 #include "Animation/AnimInstance.h"
 #include "GameFramework/InputSettings.h"
+#include "Runtime/Engine/Classes/Kismet/KismetMathLibrary.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogFPChar, Warning, All);
 
@@ -38,6 +39,14 @@ AUnrealAppCharacter::AUnrealAppCharacter()
 
 void AUnrealAppCharacter::SetupPlayerInputComponent(class UInputComponent* InputComponent)
 {
+	// Start the player at a certain offset from the rotation object
+	if (rotationObject != NULL)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Setting actor location"));
+		SetActorLocation(rotationObject->GetActorLocation() + FVector(0, rotationDistance, 0));
+		this->GetController()->SetControlRotation(UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), rotationObject->GetActorLocation()));
+	}
+
 	// set up gameplay key bindings
 	check(InputComponent);
 
