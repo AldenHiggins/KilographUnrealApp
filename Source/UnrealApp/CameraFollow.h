@@ -27,6 +27,15 @@ public:
 	virtual void TickComponent( float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction ) override;
 
 private:
+	// The player that will be affected by this camera path
 	AUnrealAppCharacter *player;
-	
+
+	// The elements of the camera path
+	TArray<AActor *> cameraPathElements;
+
+	// The current array index
+	int currentIndex;
+
+	// Determines whether the player is in follow mode or not
+	bool followMode;
 };

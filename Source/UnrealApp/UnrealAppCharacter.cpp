@@ -163,12 +163,14 @@ void AUnrealAppCharacter::tapDragX(float Value)
 		case FREERUN:
 		{
 			AddControllerYawInput(Value);
+			break;
 		}
 		case ORBIT:
 		{
 			UE_LOG(Kilograph, Log, TEXT("Delta X: %f"), Value);
 			currentZRotationAroundObject += Value;
 			orbitReposition();
+			break;
 		}
 	}
 }
@@ -180,12 +182,14 @@ void AUnrealAppCharacter::tapDragY(float Value)
 		case FREERUN:
 		{
 			AddControllerPitchInput(Value);
+			break;
 		}
 		case ORBIT:
 		{
 			UE_LOG(Kilograph, Log, TEXT("Delta Y: %f"), Value);
 			currentXRotationAroundObject -= Value;
 			orbitReposition();
+			break;
 		}
 	}
 }
@@ -209,6 +213,7 @@ void AUnrealAppCharacter::orbitReposition()
 //////////////////////////////////////////////////////////////////////////
 void AUnrealAppCharacter::activateCameraFollow()
 {
+	state = FREERUN;
 	cameraFollow->startFollowing();
 }
 
