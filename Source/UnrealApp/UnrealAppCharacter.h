@@ -1,6 +1,7 @@
 // Copyright 1998-2015 Epic Games, Inc. All Rights Reserved.
 #pragma once
 #include "GameFramework/Character.h"
+#include "UnrealAppProjectile.h"
 #include "UnrealAppCharacter.generated.h"
 
 class UInputComponent;
@@ -56,10 +57,20 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Control)
 	float rotationDistance;
 
+	// Distance at which the player will rotate around the rotation object
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Control)
+	class AActor* cameraFollowActor;
+
+	// Function callback to activate camera following
+	UFUNCTION(BlueprintCallable, Category = "Custom")
+	void activateCameraFollow();
+
 private:
 	/** Variables handling the player orbiting around a point */
 	float currentXRotationAroundObject;
 	float currentZRotationAroundObject;
+
+	class UCameraFollow *cameraFollow;
 
 	/** Handles the player's state */
 	enum AppState

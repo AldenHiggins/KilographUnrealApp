@@ -3,6 +3,7 @@
 #include "UnrealApp.h"
 #include "UnrealAppCharacter.h"
 #include "UnrealAppProjectile.h"
+#include "CameraFollow.h"
 #include "Animation/AnimInstance.h"
 #include "GameFramework/InputSettings.h"
 #include "Runtime/Engine/Classes/Kismet/KismetMathLibrary.h"
@@ -42,6 +43,15 @@ AUnrealAppCharacter::AUnrealAppCharacter()
 //////////////////////////////////////////////////////////////////////////
 void AUnrealAppCharacter::SetupPlayerInputComponent(class UInputComponent* InputComponent)
 {
+	// Initialize camera follow
+	if (cameraFollowActor != NULL)
+	{
+		cameraFollow = cameraFollowActor->FindComponentByClass<UCameraFollow>();
+		cameraFollow->setPlayer(this);
+		
+		//UE_LOG(Kilograph, Log, TEXT("Initialized player position to orbit around: %s"), cameraFollow);
+	}
+
 	// Start the player at the correct orbiting position
 	if (rotationObject != NULL)
 	{
@@ -146,8 +156,6 @@ void AUnrealAppCharacter::TouchUpdate(const ETouchIndex::Type FingerIndex, const
 //////////////////////////////////////////////////////////////////////////
 ////////////////////  STATE TOUCH FUNCTIONS  /////////////////////////////
 //////////////////////////////////////////////////////////////////////////
-
-
 void AUnrealAppCharacter::tapDragX(float Value)
 {
 	switch (state)
@@ -196,6 +204,13 @@ void AUnrealAppCharacter::orbitReposition()
 	this->GetController()->SetControlRotation(UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), rotationObject->GetActorLocation()));
 }
 
+//////////////////////////////////////////////////////////////////////////
+///////////////////////  BUTTON CALLBACKS  ///////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+void AUnrealAppCharacter::activateCameraFollow()
+{
+	cameraFollow->startFollowing();
+}
 
 //////////////////////////////////////////////////////////////////////////
 ///////////////////////  OTHER/MISC/LEGACY  //////////////////////////////
