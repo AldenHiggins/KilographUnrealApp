@@ -27,7 +27,7 @@ void UCameraFollow::BeginPlay()
 		cameraPathElements.Add(childrenRoots[childIndex]->GetOwner());
 	}
 
-	UE_LOG(Kilograph, Log, TEXT("Number of path elements: %d"), cameraPathElements.Num());
+	//UE_LOG(Kilograph, Log, TEXT("Number of path elements: %d"), cameraPathElements.Num());
 }
 
 // Called every frame
@@ -44,7 +44,7 @@ void UCameraFollow::TickComponent( float DeltaTime, ELevelTick TickType, FActorC
 
 	FVector distanceVector = nextBox->GetActorLocation() - player->GetActorLocation();
 
-	UE_LOG(Kilograph, Log, TEXT("MAGNITUDE: %f"), distanceVector.Size());
+	//UE_LOG(Kilograph, Log, TEXT("MAGNITUDE: %f"), distanceVector.Size());
 
 	if (distanceVector.Size() < 100.0f)
 	{
@@ -58,8 +58,8 @@ void UCameraFollow::TickComponent( float DeltaTime, ELevelTick TickType, FActorC
 	}
 
 	distanceVector.Normalize();
-	UE_LOG(Kilograph, Log, TEXT("DISTANCE: %s"), *distanceVector.ToString());
-	UE_LOG(Kilograph, Log, TEXT("Movement amount: %f"), 1000.0f * DeltaTime);
+	//UE_LOG(Kilograph, Log, TEXT("DISTANCE: %s"), *distanceVector.ToString());
+	//UE_LOG(Kilograph, Log, TEXT("Movement amount: %f"), 1000.0f * DeltaTime);
 	player->AddMovementInput(distanceVector, 1000.0f * DeltaTime);
 }
 
@@ -73,6 +73,6 @@ void UCameraFollow::startFollowing()
 	currentIndex = 0;
 	player->SetActorLocation(GetOwner()->GetActorLocation());
 	followMode = true;
-	UE_LOG(Kilograph, Log, TEXT("STARTED CAMERA FOLLOWING WHOOOO"));
+	//UE_LOG(Kilograph, Log, TEXT("STARTED CAMERA FOLLOWING WHOOOO"));
 }
 

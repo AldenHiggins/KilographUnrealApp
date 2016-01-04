@@ -199,6 +199,7 @@ void AUnrealAppCharacter::tapDragY(float Value)
 //////////////////////////////////////////////////////////////////////////
 void AUnrealAppCharacter::orbitReposition()
 {
+	UE_LOG(Kilograph, Log, TEXT("Orbiting"));
 	FRotator rotation = FRotator::MakeFromEuler(FVector(currentXRotationAroundObject, 0.0f, currentZRotationAroundObject));
 	//Rotation Matrix
 	FRotationMatrix MyRotationMatrix(rotation);
@@ -213,7 +214,9 @@ void AUnrealAppCharacter::orbitReposition()
 //////////////////////////////////////////////////////////////////////////
 void AUnrealAppCharacter::activateCameraFollow()
 {
+	tapDragY(1);
 	state = FREERUN;
+	UE_LOG(Kilograph, Log, TEXT("STARTED CAMERA FOLLOWING WHOOOO"));
 	cameraFollow->startFollowing();
 }
 
