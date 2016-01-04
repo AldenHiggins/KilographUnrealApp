@@ -76,3 +76,10 @@ void UCameraFollow::startFollowing()
 	//UE_LOG(Kilograph, Log, TEXT("STARTED CAMERA FOLLOWING WHOOOO"));
 }
 
+void UCameraFollow::stopFollowing()
+{
+	followMode = false;
+}
+
+
+

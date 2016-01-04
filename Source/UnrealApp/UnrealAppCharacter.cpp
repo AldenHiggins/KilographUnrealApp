@@ -56,10 +56,7 @@ void AUnrealAppCharacter::SetupPlayerInputComponent(class UInputComponent* Input
 	if (rotationObject != NULL)
 	{
 		UE_LOG(Kilograph, Log, TEXT("Initialized player position to orbit around: %s"), *rotationObject->GetName());
-		state = ORBIT;
-		currentXRotationAroundObject = 0;
-		currentZRotationAroundObject = 0;
-		orbitReposition();
+		activateOverviewMode();
 	}
 
 	// set up gameplay key bindings
@@ -218,6 +215,19 @@ void AUnrealAppCharacter::activateCameraFollow()
 	state = FREERUN;
 	UE_LOG(Kilograph, Log, TEXT("STARTED CAMERA FOLLOWING WHOOOO"));
 	cameraFollow->startFollowing();
+}
+
+void AUnrealAppCharacter::activateOverviewMode()
+{
+	// Zero out player's velocity
+	GetMovementComponent()->StopMovementImmediately();
+	// Stop the camera following mode
+	cameraFollow->stopFollowing();
+	// Start up the orbiting
+	state = ORBIT;
+	currentXRotationAroundObject = 0;
+	currentZRotationAroundObject = 0;
+	orbitReposition();
 }
 
 //////////////////////////////////////////////////////////////////////////

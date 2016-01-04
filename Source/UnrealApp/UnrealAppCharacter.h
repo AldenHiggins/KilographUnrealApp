@@ -65,6 +65,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Custom")
 	void activateCameraFollow();
 
+	// Function callback to activate camera following
+	UFUNCTION(BlueprintCallable, Category = "Custom")
+	void activateOverviewMode();
+
 private:
 	/** Variables handling the player orbiting around a point */
 	float currentXRotationAroundObject;

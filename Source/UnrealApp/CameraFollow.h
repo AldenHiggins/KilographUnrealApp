@@ -17,6 +17,9 @@ public:
 	// Start the camera following sequence
 	void startFollowing();
 
+	// Stop the camera following sequence
+	void stopFollowing();
+
 	// Sets default values for this component's properties
 	UCameraFollow();
 
