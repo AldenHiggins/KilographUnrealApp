@@ -1,0 +1,15 @@
+*.suo
+Intermediate/
+Saved/
+Content/FirstPerson/Textures/Skyboxes/VKExterior/pano_r.uasset
+Content/FirstPerson/Textures/
+Content/FirstPersonCPP/Blueprints/
+Content/
+Build/
+*.sln
+*.sdf
+*.uproject
+*.opensdf
+Config/
+Binaries/
+AndroidBuild/
