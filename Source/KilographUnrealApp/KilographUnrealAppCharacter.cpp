@@ -160,6 +160,11 @@ void AKilographUnrealAppCharacter::tapDragX(float Value)
 		AddControllerYawInput(Value);
 		break;
 	}
+	case PANORAMA:
+	{
+		AddControllerYawInput(Value);
+		break;
+	}
 	case ORBIT:
 	{
 		//UE_LOG(Kilograph, Log, TEXT("Delta X: %f"), Value);
@@ -175,6 +180,11 @@ void AKilographUnrealAppCharacter::tapDragY(float Value)
 	switch (state)
 	{
 	case FREERUN:
+	{
+		AddControllerPitchInput(Value);
+		break;
+	}
+	case PANORAMA:
 	{
 		AddControllerPitchInput(Value);
 		break;
@@ -228,6 +238,17 @@ void AKilographUnrealAppCharacter::activateOverviewMode()
 	orbitReposition();
 }
 
+void AKilographUnrealAppCharacter::activateSkyboxView()
+{
+	tapDragY(1);
+	state = PANORAMA;
+	//UE_LOG(Kilograph, Log, TEXT("STARTED CAMERA FOLLOWING WHOOOO"));
+	// Zero out player's velocity
+	GetMovementComponent()->StopMovementImmediately();
+	cameraFollow->stopFollowing();
+	SetActorLocation(skyboxCenter->GetActorLocation());
+}
+
 //////////////////////////////////////////////////////////////////////////
 ///////////////////////  OTHER/MISC/LEGACY  //////////////////////////////
 //////////////////////////////////////////////////////////////////////////
@@ -274,37 +295,4 @@ void AKilographUnrealAppCharacter::LookUpAtRate(float Rate)
 	AddControllerPitchInput(Rate * BaseLookUpRate * GetWorld()->GetDeltaSeconds());
 }
 
-void AKilographUnrealAppCharacter::OnFire()
-{
-	//// try and fire a projectile
-	//if (ProjectileClass != NULL)
-	//{
-	//	const FRotator SpawnRotation = GetControlRotation();
-	//	// MuzzleOffset is in camera space, so transform it to world space before offsetting from the character location to find the final muzzle position
-	//	const FVector SpawnLocation = GetActorLocation() + SpawnRotation.RotateVector(GunOffset);
-
-	//	UWorld* const World = GetWorld();
-	//	if (World != NULL)
-	//	{
-	//		// spawn the projectile at the muzzle
-	//		World->SpawnActor<AUnrealAppProjectile>(ProjectileClass, SpawnLocation, SpawnRotation);
-	//	}
-	//}
-
-	//// try and play the sound if specified
-	//if (FireSound != NULL)
-	//{
-	//	UGameplayStatics::PlaySoundAtLocation(this, FireSound, GetActorLocation());
-	//}
-
-	//// try and play a firing animation if specified
-	//if (FireAnimation != NULL)
-	//{
-	//	// Get the animation object for the arms mesh
-	//	UAnimInstance* AnimInstance = Mesh1P->GetAnimInstance();
-	//	if (AnimInstance != NULL)
-	//	{
-	//		AnimInstance->Montage_Play(FireAnimation, 1.f);
-	//	}
-	//}
-}
+void AKilographUnrealAppCharacter::OnFire(){}

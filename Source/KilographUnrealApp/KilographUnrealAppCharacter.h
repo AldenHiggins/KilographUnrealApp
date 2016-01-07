@@ -53,9 +53,17 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Control)
 	float rotationDistance;
 
-	// Distance at which the player will rotate around the rotation object
+	// Actor that contains path the camera will follow
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Control)
 	class AActor* cameraFollowActor;
+
+	// Point that the actor must teleport to in order to view the skybox
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Control)
+	class AActor* skyboxCenter;
+
+	// Function callback to activate skybox viewing mode
+	UFUNCTION(BlueprintCallable, Category = "Custom")
+	void activateSkyboxView();
 
 	// Function callback to activate camera following
 	UFUNCTION(BlueprintCallable, Category = "Custom")
