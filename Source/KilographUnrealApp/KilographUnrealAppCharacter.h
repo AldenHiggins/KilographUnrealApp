@@ -91,6 +91,9 @@ private:
 	AppState state;
 
 protected:
+	// Helper function to enable/disable skyboxes
+	void hideSkybox(AActor* skybox, bool hide);
+
 	// Helper function to reposition the player given the current orbit status
 	void orbitReposition();
 

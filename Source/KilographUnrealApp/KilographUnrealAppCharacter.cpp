@@ -153,6 +153,7 @@ void AKilographUnrealAppCharacter::TouchUpdate(const ETouchIndex::Type FingerInd
 //////////////////////////////////////////////////////////////////////////
 void AKilographUnrealAppCharacter::tapDragX(float Value)
 {
+	UE_LOG(Kilograph, Log, TEXT("Drag x"));
 	switch (state)
 	{
 	case FREERUN:
@@ -162,6 +163,7 @@ void AKilographUnrealAppCharacter::tapDragX(float Value)
 	}
 	case PANORAMA:
 	{
+		UE_LOG(Kilograph, Log, TEXT("panorama x"));
 		AddControllerYawInput(Value);
 		break;
 	}
@@ -215,6 +217,21 @@ void AKilographUnrealAppCharacter::orbitReposition()
 }
 
 //////////////////////////////////////////////////////////////////////////
+/////////////////////////      SKYBOX       //////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+// Helper function to enable/disable skyboxes
+void AKilographUnrealAppCharacter::hideSkybox(AActor* skybox, bool hide)
+{
+	TArray<USceneComponent*> childrenRoots;
+	skybox->GetRootComponent()->GetChildrenComponents(true, childrenRoots);
+
+	for (int childIndex = 0; childIndex < childrenRoots.Num(); childIndex++)
+	{
+		childrenRoots[childIndex]->GetOwner()->SetActorHiddenInGame(hide);
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
 ///////////////////////  BUTTON CALLBACKS  ///////////////////////////////
 //////////////////////////////////////////////////////////////////////////
 void AKilographUnrealAppCharacter::activateCameraFollow()
@@ -223,6 +240,7 @@ void AKilographUnrealAppCharacter::activateCameraFollow()
 	state = FREERUN;
 	//UE_LOG(Kilograph, Log, TEXT("STARTED CAMERA FOLLOWING WHOOOO"));
 	cameraFollow->startFollowing();
+	hideSkybox(skyboxCenter, true);
 }
 
 void AKilographUnrealAppCharacter::activateOverviewMode()
@@ -236,17 +254,20 @@ void AKilographUnrealAppCharacter::activateOverviewMode()
 	currentXRotationAroundObject = 0;
 	currentZRotationAroundObject = 0;
 	orbitReposition();
+	hideSkybox(skyboxCenter, true);
 }
 
 void AKilographUnrealAppCharacter::activateSkyboxView()
 {
 	tapDragY(1);
 	state = PANORAMA;
-	//UE_LOG(Kilograph, Log, TEXT("STARTED CAMERA FOLLOWING WHOOOO"));
+	UE_LOG(Kilograph, Log, TEXT("SKyboxxx"));
 	// Zero out player's velocity
-	GetMovementComponent()->StopMovementImmediately();
-	cameraFollow->stopFollowing();
+	//GetMovementComponent()->StopMovementImmediately();
+	//cameraFollow->stopFollowing();
 	SetActorLocation(skyboxCenter->GetActorLocation());
+
+	hideSkybox(skyboxCenter, false);
 }
 
 //////////////////////////////////////////////////////////////////////////

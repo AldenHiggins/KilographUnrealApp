@@ -4,4 +4,8 @@
 
 
 IMPLEMENT_PRIMARY_GAME_MODULE( FDefaultGameModuleImpl, KilographUnrealApp, "KilographUnrealApp" );
+
+//General Log
+DEFINE_LOG_CATEGORY(Kilograph);
+
  
