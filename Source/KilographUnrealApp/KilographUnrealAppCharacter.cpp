@@ -46,14 +46,11 @@ void AKilographUnrealAppCharacter::SetupPlayerInputComponent(class UInputCompone
 	{
 		cameraFollow = cameraFollowActor->FindComponentByClass<UCameraFollow>();
 		cameraFollow->setPlayer(this);
-
-		//UE_LOG(Kilograph, Log, TEXT("Initialized player position to orbit around: %s"), cameraFollow);
 	}
 
 	// Start the player at the correct orbiting position
 	if (rotationObject != NULL)
 	{
-		//UE_LOG(Kilograph, Log, TEXT("Initialized player position to orbit around: %s"), *rotationObject->GetName());
 		activateOverviewMode();
 	}
 
@@ -107,6 +104,46 @@ void AKilographUnrealAppCharacter::EndTouch(const ETouchIndex::Type FingerIndex,
 		OnFire();
 	}
 	TouchItem.bIsPressed = false;
+
+
+	// Perform a trace
+	UE_LOG(Kilograph, Log, TEXT("TRACING"));
+
+	FCollisionQueryParams RV_TraceParams = FCollisionQueryParams(FName(TEXT("RV_Trace")), true, this);
+	RV_TraceParams.bTraceComplex = true;
+	RV_TraceParams.bTraceAsyncScene = true;
+	RV_TraceParams.bReturnPhysicalMaterial = false;
+
+	//Re-initialize hit info
+	FHitResult RV_Hit(ForceInit);
+
+	FVector worldLocation;
+	FVector worldDirection;
+	bool start = GetWorld()->GetFirstPlayerController()->DeprojectMousePositionToWorld(worldLocation, worldDirection);
+	UE_LOG(Kilograph, Log, TEXT("world location: %s"), *worldLocation.ToString());
+	UE_LOG(Kilograph, Log, TEXT("world direction: %s"), *worldDirection.ToString());
+	UE_LOG(Kilograph, Log, TEXT("player location: %s"), *GetActorLocation().ToString());
+
+	//call GetWorld() from within an actor extending class
+	if (GetWorld()->LineTraceSingleByChannel(
+		RV_Hit,        //result
+		worldLocation,    //start
+		worldLocation + (worldDirection * 10000), //end
+		ECC_Visibility, //collision channel
+		RV_TraceParams
+		))
+	{
+		UE_LOG(Kilograph, Log, TEXT("TRACE HIT"));
+		// Output of the trace
+		RV_Hit.bBlockingHit; //did hit something? (bool)
+		RV_Hit.GetActor(); //the hit actor if there is one
+		RV_Hit.ImpactPoint;  //FVector
+		RV_Hit.ImpactNormal;
+	}
+	else
+	{
+		UE_LOG(Kilograph, Log, TEXT("TRACE MISS"));
+	}
 }
 
 void AKilographUnrealAppCharacter::TouchUpdate(const ETouchIndex::Type FingerIndex, const FVector Location)
@@ -153,7 +190,6 @@ void AKilographUnrealAppCharacter::TouchUpdate(const ETouchIndex::Type FingerInd
 //////////////////////////////////////////////////////////////////////////
 void AKilographUnrealAppCharacter::tapDragX(float Value)
 {
-	UE_LOG(Kilograph, Log, TEXT("Drag x"));
 	switch (state)
 	{
 	case FREERUN:
@@ -163,13 +199,11 @@ void AKilographUnrealAppCharacter::tapDragX(float Value)
 	}
 	case PANORAMA:
 	{
-		UE_LOG(Kilograph, Log, TEXT("panorama x"));
 		AddControllerYawInput(Value);
 		break;
 	}
 	case ORBIT:
 	{
-		//UE_LOG(Kilograph, Log, TEXT("Delta X: %f"), Value);
 		currentZRotationAroundObject += Value;
 		orbitReposition();
 		break;
@@ -193,7 +227,6 @@ void AKilographUnrealAppCharacter::tapDragY(float Value)
 	}
 	case ORBIT:
 	{
-		UE_LOG(Kilograph, Log, TEXT("Current XAround: %f"), currentXRotationAroundObject);
 		currentXRotationAroundObject -= Value;
 		// Clamp the x rotation around the max values
 		if (currentXRotationAroundObject > maxRotationX)
@@ -216,7 +249,6 @@ void AKilographUnrealAppCharacter::tapDragY(float Value)
 //////////////////////////////////////////////////////////////////////////
 void AKilographUnrealAppCharacter::orbitReposition()
 {
-	//UE_LOG(Kilograph, Log, TEXT("Orbiting"));
 	FRotator rotation = FRotator::MakeFromEuler(FVector(currentXRotationAroundObject, 0.0f, currentZRotationAroundObject));
 	//Rotation Matrix
 	FRotationMatrix MyRotationMatrix(rotation);
