@@ -129,7 +129,7 @@ void AKilographUnrealAppCharacter::EndTouch(const ETouchIndex::Type FingerIndex,
 		RV_Hit,        //result
 		worldLocation,    //start
 		worldLocation + (worldDirection * 10000), //end
-		ECC_Visibility, //collision channel
+		ECC_GameTraceChannel2, //collision channel
 		RV_TraceParams
 		))
 	{
@@ -139,6 +139,8 @@ void AKilographUnrealAppCharacter::EndTouch(const ETouchIndex::Type FingerIndex,
 		RV_Hit.GetActor(); //the hit actor if there is one
 		RV_Hit.ImpactPoint;  //FVector
 		RV_Hit.ImpactNormal;
+
+		UE_LOG(Kilograph, Log, TEXT("Hit actor: %s"), *RV_Hit.GetActor()->GetName());
 	}
 	else
 	{
