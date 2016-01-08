@@ -238,7 +238,6 @@ void AKilographUnrealAppCharacter::activateCameraFollow()
 {
 	tapDragY(1);
 	state = FREERUN;
-	//UE_LOG(Kilograph, Log, TEXT("STARTED CAMERA FOLLOWING WHOOOO"));
 	cameraFollow->startFollowing();
 	hideSkybox(skyboxCenter, true);
 }
@@ -261,10 +260,9 @@ void AKilographUnrealAppCharacter::activateSkyboxView()
 {
 	tapDragY(1);
 	state = PANORAMA;
-	UE_LOG(Kilograph, Log, TEXT("SKyboxxx"));
 	// Zero out player's velocity
-	//GetMovementComponent()->StopMovementImmediately();
-	//cameraFollow->stopFollowing();
+	GetMovementComponent()->StopMovementImmediately();
+	cameraFollow->stopFollowing();
 	SetActorLocation(skyboxCenter->GetActorLocation());
 
 	hideSkybox(skyboxCenter, false);
