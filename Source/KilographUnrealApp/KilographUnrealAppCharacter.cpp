@@ -105,47 +105,8 @@ void AKilographUnrealAppCharacter::EndTouch(const ETouchIndex::Type FingerIndex,
 	}
 	TouchItem.bIsPressed = false;
 
-
-	// Perform a trace
-	UE_LOG(Kilograph, Log, TEXT("TRACING"));
-
-	FCollisionQueryParams RV_TraceParams = FCollisionQueryParams(FName(TEXT("RV_Trace")), true, this);
-	RV_TraceParams.bTraceComplex = true;
-	RV_TraceParams.bTraceAsyncScene = true;
-	RV_TraceParams.bReturnPhysicalMaterial = false;
-
-	//Re-initialize hit info
-	FHitResult RV_Hit(ForceInit);
-
-	FVector worldLocation;
-	FVector worldDirection;
-	bool start = GetWorld()->GetFirstPlayerController()->DeprojectMousePositionToWorld(worldLocation, worldDirection);
-	UE_LOG(Kilograph, Log, TEXT("world location: %s"), *worldLocation.ToString());
-	UE_LOG(Kilograph, Log, TEXT("world direction: %s"), *worldDirection.ToString());
-	UE_LOG(Kilograph, Log, TEXT("player location: %s"), *GetActorLocation().ToString());
-
-	//call GetWorld() from within an actor extending class
-	if (GetWorld()->LineTraceSingleByChannel(
-		RV_Hit,        //result
-		worldLocation,    //start
-		worldLocation + (worldDirection * 10000), //end
-		ECC_GameTraceChannel2, //collision channel
-		RV_TraceParams
-		))
-	{
-		UE_LOG(Kilograph, Log, TEXT("TRACE HIT"));
-		// Output of the trace
-		RV_Hit.bBlockingHit; //did hit something? (bool)
-		RV_Hit.GetActor(); //the hit actor if there is one
-		RV_Hit.ImpactPoint;  //FVector
-		RV_Hit.ImpactNormal;
-
-		UE_LOG(Kilograph, Log, TEXT("Hit actor: %s"), *RV_Hit.GetActor()->GetName());
-	}
-	else
-	{
-		UE_LOG(Kilograph, Log, TEXT("TRACE MISS"));
-	}
+	// Now check to see if the user has clicked on a hotspot, activate them if so
+	traceForHotspots();
 }
 
 void AKilographUnrealAppCharacter::TouchUpdate(const ETouchIndex::Type FingerIndex, const FVector Location)
@@ -315,6 +276,53 @@ void AKilographUnrealAppCharacter::activateSkyboxView()
 //////////////////////////////////////////////////////////////////////////
 ///////////////////////  OTHER/MISC/LEGACY  //////////////////////////////
 //////////////////////////////////////////////////////////////////////////
+// Trace for hotspots and activate their press functions
+void AKilographUnrealAppCharacter::traceForHotspots()
+{
+	FCollisionQueryParams RV_TraceParams = FCollisionQueryParams(FName(TEXT("RV_Trace")), true, this);
+	RV_TraceParams.bTraceComplex = true;
+	RV_TraceParams.bTraceAsyncScene = true;
+	RV_TraceParams.bReturnPhysicalMaterial = false;
+
+	//Re-initialize hit info
+	FHitResult RV_Hit(ForceInit);
+
+	// Get the vector from the point the user clicks outwards from the screen
+	FVector worldLocation;
+	FVector worldDirection;
+	bool start = GetWorld()->GetFirstPlayerController()->DeprojectMousePositionToWorld(worldLocation, worldDirection);
+
+	if (GetWorld()->LineTraceSingleByChannel(
+		RV_Hit,        //result
+		worldLocation,    //start
+		worldLocation + (worldDirection * 10000), //end
+		ECC_GameTraceChannel2, //collision channel
+		RV_TraceParams
+		))
+	{
+		AActor *hitActor = RV_Hit.GetActor();
+		FOutputDeviceDebug debug;
+
+		//UE_LOG(Kilograph, Log, TEXT("Hit actor: %s"), *RV_Hit.GetActor()->GetName());
+
+		TArray<UActorComponent *> actorComponents;
+		hitActor->GetComponents(actorComponents);
+
+		for (int componentIndex = 0; componentIndex < actorComponents.Num(); componentIndex++)
+		{
+			FString componentName = *actorComponents[componentIndex]->GetClass()->GetName();
+
+			if (componentName.Compare("Hotspot_C") == 0)
+			{
+				//UE_LOG(Kilograph, Log, TEXT("Hotspot found"));
+				actorComponents[componentIndex]->CallFunctionByNameWithArguments(TEXT("Press"), debug, NULL, true);
+			}
+			//UE_LOG(Kilograph, Log, TEXT("Actor component name: %s"), *componentName);
+		}
+	}
+}
+
+
 bool AKilographUnrealAppCharacter::EnableTouchscreenMovement(class UInputComponent* InputComponent)
 {
 	bool bResult = false;

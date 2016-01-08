@@ -99,6 +99,9 @@ private:
 	AppState state;
 
 protected:
+	// Trace for hotspots and activate their press functions
+	void traceForHotspots();
+
 	// Helper function to enable/disable skyboxes
 	void hideSkybox(AActor* skybox, bool hide);
 
