@@ -53,6 +53,14 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Control)
 	float rotationDistance;
 
+	// Clamp the possible rotation values
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Control)
+	float maxRotationX;
+
+	// Clamp the possible rotation values
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Control)
+	float minRotationX;
+
 	// Actor that contains path the camera will follow
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Control)
 	class AActor* cameraFollowActor;

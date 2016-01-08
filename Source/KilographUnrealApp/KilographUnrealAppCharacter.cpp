@@ -193,8 +193,18 @@ void AKilographUnrealAppCharacter::tapDragY(float Value)
 	}
 	case ORBIT:
 	{
-		//UE_LOG(Kilograph, Log, TEXT("Delta Y: %f"), Value);
+		UE_LOG(Kilograph, Log, TEXT("Current XAround: %f"), currentXRotationAroundObject);
 		currentXRotationAroundObject -= Value;
+		// Clamp the x rotation around the max values
+		if (currentXRotationAroundObject > maxRotationX)
+		{
+			currentXRotationAroundObject = maxRotationX;
+		}
+		else if (currentXRotationAroundObject < minRotationX)
+		{
+			currentXRotationAroundObject = minRotationX;
+		}
+
 		orbitReposition();
 		break;
 	}
